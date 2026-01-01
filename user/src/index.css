@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #010166;
+  --color-primary-light: #4d4da6;
+  --color-primary-dark: #00004a;
+
+  --color-secondary: #18c4a5;
+  --color-secondary-light: #54e1c7;
+  --color-secondary-dark: #0b8f76;
+
+  --color-background: #f9fafb;
+  --color-surface: #ffffff;
+  --color-border: #e5e7eb;
+  --color-text: #1f2937;
+  --color-text-light: #6b7280;
+
+  --color-success: #16a34a;
+  --color-warning: #f59e0b;
+  --color-error: #dc2626;
+}
+.links.active {
+  color: #0b8f76;
+  transition: 1s;
+}
+.links:after {
+  content: "";
+  width: 90%;
+  background-color: #0b8f76;
+  height: 3px;
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: 1s;
+  border-radius: 30px;
+  display: block;
+}
+.links:hover:after {
+  transform: scaleX(1);
+}
+.links:hover {
+  color: #0b8f76;
+}
+.links.active:after {
+  transform: scaleX(1);
+}
+.loader {
+  transform: scale(1);
+  
+  animation: change 2s;
+}
+@keyframes change {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(10);
+  }
+}
