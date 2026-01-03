@@ -12,11 +12,34 @@ const api = axios.create({
   withCredentials: true,
 });
 
+let blackMode = {
+  backGround: "#000",
+  primaryColor: "#0B8F76",
+  secondaryColor: "#C0E2C9",
+  textColor: "white",
+};
+const whiteMode = {
+  backGround: "#FFFFFF",
+  primaryColor: "#0B8F76",
+  secondaryColor: "#C0E2C9",
+  textColor: "black",
+};
+
 const AppContextProvider = ({ children }) => {
   const [isLogin, setIsLogin] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [mode, setMode] = useState(false);
+
   const [userData, setUserData] = useState({});
+
+  const [color, setColor] = useState();
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+    mode ? setColor(blackMode) : setColor(whiteMode);
+  }, [mode]);
+
   let getAuthState = async () => {
     try {
       const { data } = await api.get("/auth/isAuthenticated");
@@ -58,6 +81,10 @@ const AppContextProvider = ({ children }) => {
   }, []);
   const value = {
     isLogin,
+    color,
+    setColor,
+    mode,
+    setMode,
     api,
     logout,
     setUserData,

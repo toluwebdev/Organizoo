@@ -1,6 +1,7 @@
 import express from "express";
 import {
   addInterest,
+  addUserDetails,
   ChangeImage,
   ChangePassword,
   getUserDetails,
@@ -74,6 +75,12 @@ userRoutes.post(
 );
 userRoutes.get("/userDetails", Auth, getUserDetails);
 userRoutes.get("/addInterest", Auth, addInterest);
+userRoutes.put(
+  "/updateUserDetails",
+  Auth,
+  upload.single("image"),
+  addUserDetails
+);
 userRoutes.get("/logout", async (req, res) => {
   try {
     res.clearCookie("token");

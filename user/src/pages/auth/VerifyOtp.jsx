@@ -84,12 +84,13 @@ const VerifyOtp = () => {
         <button
           type="submit"
           disabled={isLoading}
-          className="bg-[#16CC95] text-white rounded-xl cursor-pointer mt-5 p-3 w-full"
+          className="bg-[#16CC95] flex justify-center items-center text-white rounded-xl cursor-pointer mt-5 p-3 w-full"
         >
-          {isLoading && (
+          {isLoading ? (
             <div className="size-8 rounded-full  border-t-2 absolute animate-spin"></div>
+          ) : (
+            "Submit"
           )}
-          Submit
         </button>
       </div>
     </form>

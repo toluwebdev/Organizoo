@@ -3,15 +3,15 @@ let userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     about: { type: String, default: "" },
-    website: { type: String, default: "" },
     location: { type: String, default: "" },
     socialLinks: {
       twitter: { type: String, default: "" },
       facebook: { type: String, default: "" },
       instagram: { type: String, default: "" },
-      
     },
     language: { type: String, default: "" },
+    gender: { type: String, enum: ["male", "female"] },
+
     email: { type: String, unique: true, required: true },
     password: { type: String, default: "" },
     profileImage: { type: String, default: "" },
@@ -22,6 +22,7 @@ let userSchema = new mongoose.Schema(
     resetOtpExpireAt: { type: Number, default: 0 },
     isPremium: { type: Boolean, default: false },
     interest: { type: [String], default: [""] },
+    isActive: { type: Boolean },
   },
   { timestamps: true }
 );

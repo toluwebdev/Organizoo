@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import transporter from "../configs/nodemailer.js";
 import fs from "fs";
 import imagekit from "../configs/imageKit.js";
+
 // Sign Up
 export const signUp = async (req, res) => {
   try {
@@ -154,11 +155,14 @@ export const VerifyOtp = async (req, res) => {
 export const sendResetOtp = async (req, res) => {
   try {
     const { email } = req.body;
+    if (!email) {
+      return res.status(401).json({success: false, message:"Email Must be Provided"})
+    }
     const user = await User.findOne({ email });
     if (!user) {
       return res
-        .status(400)
-        .json({ success: false, message: "Missing Details" });
+        .status(403)
+        .json({ success: false, message: "user Email Not Found" });
     }
     const otp = Math.floor(10000 + Math.random(90000));
     const mailOptions = {
@@ -227,7 +231,7 @@ export const ChangeImage = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) {
       return res
-        .status(401)
+        .status(404)
         .json({ success: false, message: "User Not Found" });
     }
     const fileBuffer = fs.readFileSync(image.path);
@@ -274,8 +278,11 @@ export const getUserDetails = async (req, res) => {
       success: true,
       userData: {
         name: user.name,
+        about: user.about,
+        location: user.location,
         email: user.email,
         imageUrl: user.profileImage,
+        socialLinks: user.socialLinks,
         isVerified: user.isVerified,
         interest: user.interest,
       },
@@ -301,5 +308,52 @@ export const addInterest = async (req, res) => {
       .json({ success: true, message: "User Interest Updated Successfully " });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+export const addUserDetails = async (req, res) => {
+  try {
+    const { about, gender, location, socialLinks, language } = req.body;
+    const image = req.file;
+    const { userId } = req;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User Credentials Not Found" });
+    }
+    if (!image || !about || !gender || !location || !language) {
+      return req.status(400).json({
+        success: false,
+        message: "All required fields ",
+      });
+    }
+    const fileBuffer = fs.readFileSync(image.path);
+    const response = await imagekit.upload({
+      file: fileBuffer,
+      fileName: image.originalname,
+      folder: "organizoo/user",
+    });
+    const optimizedImageUrl = imagekit.url({
+      path: response.filePath,
+      transformation: [
+        { quality: "auto" }, //Auto Compression
+        { format: "webp" }, //convert to modern format
+        { width: "1280" },
+      ],
+    });
+    const imageUrl = optimizedImageUrl;
+    user.about = about;
+    user.location = location;
+    user.socialLinks = socialLinks;
+    user.language = language;
+    user.profileImage = imageUrl;
+    await user.save();
+    res.status(201).json({
+      success: true,
+      message: "User Details added",
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "An Error Occured" });
   }
 };
