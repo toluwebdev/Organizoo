@@ -10,11 +10,12 @@ import Notfound from "./pages/Notfound";
 import ResetPassword from "./pages/auth/ResetPassword";
 import { useAppContext } from "./context/AppContext";
 import Index from "./pages";
+import Editprofile from "./pages/auth/Editprofile";
 
 const App = () => {
   let [loader, setLoader] = useState(true);
   let router = useLocation();
-  const { color } = useAppContext();
+  const { mode } = useAppContext();
   useEffect(() => {
     setTimeout(() => setLoader(false), 1500);
   }, []);
@@ -23,10 +24,9 @@ const App = () => {
   }
   return (
     <div
-      className="min-h-screen transition-all duration-500"
-      style={{
-        backgroundColor: color.backGround,
-      }}
+      className={`min-h-screen transition-all duration-500 ${
+        mode ? "bg-black" : "bg-white"
+      }`}
     >
       {router.pathname === "/login" ||
       router.pathname === "/signup" ||
@@ -44,6 +44,7 @@ const App = () => {
         <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/resetPassword" element={<ResetPassword />} />
         <Route path="*" element={<Notfound />} />
+        <Route path="/edit-profile" element={<Editprofile />} />
       </Routes>
     </div>
   );

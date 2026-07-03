@@ -17,28 +17,32 @@ let blackMode = {
   primaryColor: "#0B8F76",
   secondaryColor: "#C0E2C9",
   textColor: "white",
+  inputContainer: "#f9f9f985",
 };
 const whiteMode = {
   backGround: "#FFFFFF",
   primaryColor: "#0B8F76",
   secondaryColor: "#C0E2C9",
   textColor: "black",
+  inputContainer: "#F9F9F9",
 };
 
 const AppContextProvider = ({ children }) => {
   const [isLogin, setIsLogin] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [mode, setMode] = useState(false);
-
+  const storedMode = localStorage.getItem("mode");
+  const [mode, setMode] = useState(
+    storedMode ? JSON.parse(storedMode) : false // false = light, true = dark
+  );
+  const [color, setColor] = useState(whiteMode);
   const [userData, setUserData] = useState({});
 
-  const [color, setColor] = useState();
+  useEffect(() => {
+    localStorage.setItem("mode", JSON.stringify(mode));
+    setColor(mode ? blackMode : whiteMode);
+  }, [mode]);
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    mode ? setColor(blackMode) : setColor(whiteMode);
-  }, [mode]);
 
   let getAuthState = async () => {
     try {

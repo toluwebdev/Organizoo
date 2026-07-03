@@ -19,33 +19,19 @@
   --color-warning: #f59e0b;
   --color-error: #dc2626;
 }
-.links.active {
-  color: #0b8f76;
-  transition: 1s;
+
+.bg-\[\#f9f9f985\] {
+  background-color: #f9f9f985;
 }
-.links:after {
-  content: "";
-  width: 90%;
-  background-color: #0b8f76;
-  height: 3px;
-  transform-origin: left;
-  transform: scaleX(0);
-  transition: 1s;
-  border-radius: 30px;
-  display: block;
+.bg-\[\#000\] {
+  background-color: #000;
 }
-.links:hover:after {
-  transform: scaleX(1);
-}
-.links:hover {
-  color: #0b8f76;
-}
-.links.active:after {
-  transform: scaleX(1);
+.bg-\[\#FFFFFF\] {
+  background-color: #ffffff;
 }
 .loader {
   transform: scale(1);
-  
+
   animation: change 2s;
 }
 @keyframes change {
@@ -55,4 +41,14 @@
   to {
     transform: scale(10);
   }
+}
+.lan a {
+  width: full;
+  color: white;
+}
+.fa {
+  color: white;
+}
+.lan a.active {
+  background-color: rgba(0, 0, 0, 0.589);
 }

@@ -43,6 +43,7 @@ const VerifyOtp = () => {
       console.log(data);
       if (data.success) {
         toast.success(data.message);
+        router("/edit-profile");
       } else {
         toast.error(data.message);
       }
@@ -87,7 +88,7 @@ const VerifyOtp = () => {
           className="bg-[#16CC95] flex justify-center items-center text-white rounded-xl cursor-pointer mt-5 p-3 w-full"
         >
           {isLoading ? (
-            <div className="size-8 rounded-full  border-t-2 absolute animate-spin"></div>
+            <div className="size-8 rounded-full  border-t-2  animate-spin"></div>
           ) : (
             "Submit"
           )}

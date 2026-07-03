@@ -5,15 +5,20 @@ import { useAppContext } from "../../context/AppContext";
 const ResetPassword = () => {
   const [email, setEmail] = useState("");
   const { api } = useAppContext();
+  const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState("");
-  const [count, setCount] = useState(2);
+  const [count, setCount] = useState(1);
   const inputRefs = useRef([]);
   const [sec, setSec] = useState(60);
   useEffect(() => {
-    if (count === 2) {
-      setInterval(() => setSec((prev) => (prev !== 0 ? prev - 1 : 0)), 1000);
-    }
-  }, [count]);
+    if (count !== 2 || sec === 0) return;
+
+    const interval = setInterval(() => {
+      setSec((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [count, sec]);
 
   const handleInput = (e, index) => {
     if (e.target.value.length > 0 && inputRefs.current.length - 1) {
@@ -22,6 +27,7 @@ const ResetPassword = () => {
   };
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const { data } = await api.post("/auth/sendResetOtp", {
         email,
@@ -34,6 +40,26 @@ const ResetPassword = () => {
       }
     } catch (error) {
       toast.error(error.response?.data?.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleSendResetOtp = async () => {
+    setLoading(true);
+    try {
+      const { data } = await api.post("/auth/sendResetOtp", {
+        email,
+      });
+      if (data.success) {
+        toast.success(data.message);
+        setSec(60);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message);
+    } finally {
+      setLoading(false);
     }
   };
   const handlePaste = (e) => {
@@ -69,9 +95,13 @@ const ResetPassword = () => {
             />
             <button
               onClick={handleEmailSubmit}
+              disabled={loading}
               className="bg-[#16CC95] flex justify-center items-center text-white rounded-xl cursor-pointer mt-5 p-3 w-full"
             >
-              Submit
+              {loading && (
+                <div className="size-8 rounded-full  border-t-2  animate-spin"></div>
+              )}
+              {!loading && "Submit"}
             </button>
           </div>
         )}
@@ -108,11 +138,9 @@ const ResetPassword = () => {
               Didn't get an otp?{" "}
               <span
                 onClick={() =>
-                  sec === 0
-                    ? handleEmailSubmit()
-                    : toast.error(
-                        "Wait a bit an email is been sent to your provided email"
-                      )
+                  sec === 0 && !loading
+                    ? handleSendResetOtp()
+                    : toast.error("Wait a minute")
                 }
                 className={`cursor-pointer underline`}
               >
@@ -120,7 +148,11 @@ const ResetPassword = () => {
               </span>
             </p>
             <button className="bg-[#16CC95] flex justify-center items-center text-white rounded-xl cursor-pointer mt-5 p-3 w-full">
-              Submit
+              {loading ? (
+                <div className="size-8 rounded-full  border-t-2  animate-spin"></div>
+              ) : (
+                "Submit"
+              )}
             </button>
           </div>
         )}
@@ -146,8 +178,15 @@ const ResetPassword = () => {
                 className="border outline-0 p-3 w-full mt-5 rounded-lg"
               />
             </div>
-            <button className="bg-[#16CC95] flex justify-center items-center text-white rounded-xl cursor-pointer mt-5 p-3 w-full">
-              Submit
+            <button
+              disabled={loading}
+              className="bg-[#16CC95] flex justify-center items-center text-white rounded-xl cursor-pointer mt-5 p-3 w-full"
+            >
+              {loading ? (
+                <div className="size-8 rounded-full  border-t-2  animate-spin"></div>
+              ) : (
+                "Submit"
+              )}
             </button>
           </div>
         )}

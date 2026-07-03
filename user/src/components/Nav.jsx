@@ -1,10 +1,21 @@
 import { Link, NavLink } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { useAppContext } from "../context/AppContext";
-import { CiSearch } from "react-icons/ci";
+import { CiDroplet, CiSearch } from "react-icons/ci";
 import { CiBrightnessDown } from "react-icons/ci";
-import { MdBrightnessMedium } from "react-icons/md";
-import { IoIosNotifications } from "react-icons/io";
+import {
+  MdArrowDropDown,
+  MdArrowDropDownCircle,
+  MdBrightnessMedium,
+} from "react-icons/md";
+import { RiMenu3Fill } from "react-icons/ri";
+
+import {
+  IoIosArrowBack,
+  IoIosArrowDropdown,
+  IoIosArrowDropdownCircle,
+  IoIosNotifications,
+} from "react-icons/io";
 
 import {
   FaTachometerAlt,
@@ -15,19 +26,154 @@ import {
   FaCalendarAlt,
   FaCog,
 } from "react-icons/fa";
+import { useState } from "react";
 
+const navlink = [
+  {
+    icon: <FaTachometerAlt size={20} color="#fff" />,
+    name: "Dashboard",
+    to: "/",
+  },
+  {
+    icon: <FaCalendarCheck size={20} className="text-white" />,
+    name: "Events",
+    subLinks: [
+      {
+        name: "Event Attended",
+        to: "/event-attended",
+      },
+      {
+        name: "My Events",
+        to: "/event-created",
+      },
+      {
+        name: "All Events",
+        to: "/allEvents",
+      },
+    ],
+  },
+  {
+    icon: <FaUsers size={20} color="#fff" />,
+    name: "Peoples",
+    to: "/peoples",
+  },
+  {
+    icon: <FaEnvelope size={20} color="#fff" />,
+    name: "Messages",
+    subLinks: [
+      {
+        name: "Archive",
+        to: "/Archive",
+      },
+      {
+        name: "Inbox",
+        to: "/Inbox",
+      },
+    ],
+  },
+  {
+    icon: <FaCalendarAlt size={20} color="#fff" />,
+    name: "Calendar",
+    to: "/calendar",
+  },
+  {
+    icon: <FaCog size={20} color="#fff" />,
+    name: "Settings",
+    subLinks: [
+      {
+        name: "Profile",
+        to: "/profile",
+      },
+      {
+        name: "Payment",
+        to: "/payment",
+      },
+      {
+        name: "Notification",
+        to: "/notification",
+      },
+      {
+        name: "Wait List",
+        to: "/waitList",
+      },
+    ],
+  },
+];
+const Navi = ({ data, index, setActiveIndex, activeIndex }) => {
+  if (data.subLinks) {
+    return (
+      <li
+        onClick={() =>
+          setActiveIndex((prev) => (prev === index ? null : index))
+        }
+        className="h-full group px-2 max-md:w-full  relative flex-1 cursor-pointer list-none"
+      >
+        <div className="h-full max-md:w-full text-white gap-3 max-md:flex-row min-h-20 max-md:min-h-15 flex flex-row items-center max-md:justify-start justify-center">
+          <div className="max-md:flex-row max-md:gap-3 max-md:w-full flex max-md:justify-start flex-col justify-center items-center">
+            {data.icon}
+            {data.name}
+          </div>
+          <div
+            className={` duration-500 ${
+              activeIndex === index ? "rotate-90" : "rotate-270"
+            }`}
+          >
+            <IoIosArrowBack />
+          </div>
+        </div>
+
+        <ul className="md:absolute  duration-500 w-full static top-20 bg-[#18212C]">
+          <div
+            className={`h-0 w-full overflow-hidden ${
+              activeIndex === index ? "h-[100%]" : "h-0"
+            }`}
+          >
+            {data.subLinks.map((e) => (
+              <li className="w-full block">
+                {
+                  <NavLink
+                    className="w-full max-md:gap-3 px-2 block  py-3"
+                    to={e.to}
+                  >
+                    {e.name}
+                  </NavLink>
+                }
+              </li>
+            ))}
+          </div>
+        </ul>
+      </li>
+    );
+  }
+  return (
+    <li
+      onClick={() => setActiveIndex(null)}
+      className="h-full max-md:w-full flex-1 list-none"
+    >
+      <NavLink
+        to={data.to}
+        className="h-full max-md:w-full max-md:justify-start px-2 max-md:flex-row min-h-20 max-md:min-h-15 flex flex-col items-center max-md:gap-3 justify-center"
+      >
+        {data.icon}
+        {data.name}
+      </NavLink>
+    </li>
+  );
+};
 const Nav = () => {
-  const { isLogin, userData, logout, mode, color, setMode } = useAppContext();
+  const { isLogin, userData, logout, mode, setMode, color } = useAppContext();
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [mobileMenu, setShowMobileMenu] = useState(false);
   console.log(userData);
+  const handlerTheme = () => {
+    setMode((prev) => !prev);
+  };
 
   return (
-    <nav
-      style={{
-        backgroundColor: color.backGround,
-      }}
-    >
+    <nav className={`bg-[${color.backGround}]`}>
+      {/* Logo */}
       <div
-        className={`h-20 flex-wrap gap-2 mx-auto max-w-6xl  flex justify-between items-center px-4 `}
+        className={`min-h-20 max-md:py-2 flex-wrap gap-2 mx-auto max-w-6xl  flex justify-between items-center px-4 `}
       >
         <Link to="/">
           {!mode ? (
@@ -36,13 +182,11 @@ const Nav = () => {
             <img src={assets.whiteLogo} className="h-10" alt="" />
           )}
         </Link>
-
-        <div className="flex flex-wrap max-md:order-1  gap-2 h-full items-center justify-center">
+        {/* Search */}
+        <div className="flex flex-nowrap max-md:order-1 max-md:w-full gap-2 h-full items-center justify-center">
           {" "}
           <div
-            className={`flex gap-2 p-2 w-xs max-[980px]:w-50 max-w-full items-center h-full  ${
-              !mode ? "bg-[#F9F9F9]" : "bg-[#F9F9F9]/35"
-            } `}
+            className={`flex gap-2 p-2 min-w-xs max-md:min-w-0 max-md:h-12  flex-1  max-w-full items-center h-20  bg-[${color.inputContainer}] `}
           >
             <CiSearch size={24} className="text-gray-400" />
             <input
@@ -52,64 +196,44 @@ const Nav = () => {
             />
           </div>
           <button
-            className={`bg-[${color.primaryColor}] transition duration-500 p-3 rounded-md px-7 font-medium text-white`}
+            className={`
+              bg-[${color.primaryColor}]
+           transition duration-500 p-3 max-md:px-3  rounded-md px-7 font-medium text-white`}
           >
             Create New Event
           </button>
         </div>
-
+        {/* Is Login Logic */}
         {isLogin ? (
-          <div className="flex items-center gap-3">
+          <div className="flex  items-center max-md:gap-1 gap-3">
             <span
-              className={`text-${color.textColor} max-md:hidden transition duration-500`}
+              className={` text-${color.textColor}  max-md:hidden transition duration-500`}
             >
               <b className="font-medium">REVENUE:</b> $20000
             </span>
             <div className="flex gap-10 justify-center items-center">
               <div className="group relative">
-                {userData.imageUrl ? (
-                  <img
-                    src={userData?.imageUrl}
-                    className="size-10 cursor-pointer rounded-full"
-                    alt="Profile"
-                  />
-                ) : (
-                  <img
-                    src={userData?.imageUrl}
-                    className="size-10 cursor-pointer rounded-full"
-                    alt="Profile"
-                  />
-                )}
+                <img
+                  src={userData.imageUrl ? userData.imageUrl : ""}
+                  className="size-10 cursor-pointer rounded-full"
+                  alt="Profile"
+                />
                 <ul
-                  className={`absolute right-0   min-w-[200px] hidden group-hover:block rounded-lg overflow-hidden shadow-xl ${
-                    !mode ? "bg-white text-black" : "bg-black text-white"
-                  }`}
+                  className={`absolute right-0   min-w-[200px] z-40 hidden group-hover:block rounded-lg overflow-hidden shadow-xl text-${color.textColor} bg-[${color.backGround}]`}
                 >
-                  <li className="hover:bg-gray-500/30  cursor-pointer px-4 py-2">
-                    <Link to="/profile" className="block ">
-                      My Profile
-                    </Link>
-                  </li>
-                  <li className="hover:bg-gray-500/30 cursor-pointer px-4 py-2">
-                    <Link to="/notifications" className="block ">
-                      Notifications
-                    </Link>
-                  </li>
-                  <li className="hover:bg-gray-500/30 cursor-pointer px-4 py-2">
-                    <Link to="/eventcreated" className="block ">
-                      Event Created
-                    </Link>
-                  </li>
-                  <li className="hover:bg-gray-500/30 cursor-pointer px-4 py-2">
-                    <Link to="/eventAttended" className="block ">
-                      Event Attended
-                    </Link>
-                  </li>
-                  <li className="hover:bg-gray-500/30 cursor-pointer px-4 py-2">
-                    <Link to="/elements" className="block ">
-                      Elements
-                    </Link>
-                  </li>
+                  {[
+                    { name: "My Profile", link: "/profile" },
+                    { name: "Notifications", link: "/notifications" },
+                    { name: "Event Created", link: "/eventcreated" },
+                    { name: "Event Attended", link: "/eventAttended" },
+                    { name: "Elements", link: "/Elements" },
+                  ].map((e) => (
+                    <li className="hover:bg-gray-500/30 cursor-pointer px-4 py-2">
+                      <Link to={e.link} className="block ">
+                        {e.name}
+                      </Link>
+                    </li>
+                  ))}
                   <li
                     onClick={logout}
                     className="hover:bg-gray-500/30  text-red-500 cursor-pointer px-4 py-2"
@@ -125,13 +249,13 @@ const Nav = () => {
                     className={`transition ${
                       mode ? "text-white" : "text-gray-400"
                     }  cursor-pointer duration-700`}
-                    onClick={() => setMode(!mode)}
+                    onClick={() => handlerTheme()}
                   />
                 ) : (
                   <MdBrightnessMedium
                     size={20}
                     className={`transition cursor-pointer  duration-700`}
-                    onClick={() => setMode(!mode)}
+                    onClick={() => handlerTheme()}
                   />
                 )}
                 <div className="flex justify-center items-center relative">
@@ -145,6 +269,11 @@ const Nav = () => {
                     4
                   </div>
                 </div>
+                <RiMenu3Fill
+                  onClick={() => setShowMobileMenu((prev) => !prev)}
+                  className={`md:hidden block text-${color.textColor}`}
+                  size={25}
+                />
               </div>
             </div>
           </div>
@@ -169,13 +298,13 @@ const Nav = () => {
                   className={`transition ${
                     mode ? "text-white" : "text-gray-400"
                   }  cursor-pointer duration-700`}
-                  onClick={() => setMode(!mode)}
+                  onClick={() => handlerTheme()}
                 />
               ) : (
                 <MdBrightnessMedium
                   size={25}
                   className={`transition cursor-pointer  duration-700`}
-                  onClick={() => setMode(!mode)}
+                  onClick={() => handlerTheme()}
                 />
               )}
               <div className="relative flex justify-center items-center">
@@ -185,67 +314,29 @@ const Nav = () => {
                   }  cursor-pointer duration-500`}
                   size={25}
                 />
+                <RiMenu3Fill
+                  onClick={() => setShowMobileMenu((prev) => !prev)}
+                  className={`md:hidden block text-${color.textColor}`}
+                  size={25}
+                />
               </div>
             </div>
           </div>
         )}
       </div>
-      <div className="w-full  h-20 bg-[#18212C]">
-        <div className=" mx-auto h-full max-w-6xl flex justify-between items-center px-4">
-          <li className="h-full list-none">
-            <NavLink
-              to={"/"}
-              className="h-full  text-white font-700 flex justify-center items-center flex-col"
-            >
-              <FaTachometerAlt size={20} className="text-white" />
-              DashBoard
-            </NavLink>
-          </li>
-          <li className="h-full list-none">
-            <NavLink
-              to={"/events"}
-              className="h-full  text-white font-700 flex justify-center items-center flex-col"
-            >
-              <FaCalendarCheck size={20} color="white" />
-              Events
-            </NavLink>
-          </li>
-          <li className="h-20 list-none">
-            <NavLink
-              to={"/people"}
-              className="h-full  text-white font-700 flex justify-center items-center flex-col"
-            >
-              <FaUsers size={20} color="#fff" />
-              Peoples
-            </NavLink>
-          </li>
-          <li className="h-full list-none">
-            <NavLink
-              to="/messages"
-              className="h-full  text-white font-700 flex justify-center items-center flex-col"
-            >
-              <FaEnvelope size={20} color="white" />
-              Messages
-            </NavLink>
-          </li>
-          <li className="h-full list-none">
-            <NavLink
-              to="/calendar"
-              className="h-full  text-white font-700 flex justify-center items-center flex-col"
-            >
-              <FaCalendarAlt size={20} color="white" />
-              Calendar
-            </NavLink>
-          </li>
-          <li className="h-full list-none">
-            <NavLink
-              to={"/profile"}
-              className="h-full font-700 text-white flex justify-center items-center flex-col"
-            >
-              <FaCog size={20} color="white" />
-              Settings
-            </NavLink>
-          </li>
+      {/* Menu */}
+      <div
+        className={`w-full lan ${mobileMenu ? "max-md:h-full max-md:min-h-0" : "max-md:h-0 max-md:min-h-0 max-md:overflow-hidden"}  min-h-20 h-full bg-[#18212C]`}
+      >
+        <div className=" mx-auto h-full max-w-6xl flex flex-wrap max-md:flex-col justify-between items-center ">
+          {navlink.map((e, index) => (
+            <Navi
+              data={e}
+              index={index}
+              activeIndex={activeIndex}
+              setActiveIndex={setActiveIndex}
+            ></Navi>
+          ))}
         </div>
       </div>
     </nav>
