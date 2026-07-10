@@ -1,4 +1,5 @@
 import User from "../models/User.schema.js";
+import Event from "../models/Events.schema.js"; // <-- ADD THIS LINE to register the "Events" model
 import bcrypt from "bcryptjs";
 import transporter from "../configs/nodemailer.js";
 import jwt from "jsonwebtoken";
@@ -429,17 +430,18 @@ export const CompleteProfile = async (req, res) => {
 // Get Profile
 export const getUserProfile = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { userId } = req;
     if (!userId) {
       return res
         .status(401)
         .json({ success: false, message: "User Unautorized" });
     }
     const user = await User.findById(userId)
+      .select("-password")
       .populate("followers", "-password")
       .populate("following", "-password")
-      .populate("savedEvents")
-      .populate("-password");
+      .populate("savedEvents");
+
     if (!user) {
       return res
         .status(400)
@@ -506,6 +508,54 @@ export const followUser = async (req, res) => {
     res.status(200).json({
       success: true,
       message: `You are now following ${added.firstName}`,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const addLocation = async (req, res) => {
+  try {
+    const location = req.body;
+    const { userId } = req;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "User Unauthorized",
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      {
+        location: {
+          city: location.city,
+          country: location.country,
+          district: location.district,
+          isoCountryCode: location.isoCountryCode,
+          name: location.name,
+          postalCode: location.postalCode,
+          region: location.region,
+          street: location.street,
+          streetNumber: location.streetNumber,
+          timezone: location.timezone,
+          coordinates: {
+            type: "point",
+            coordinates: [location.longitude, location.latitude],
+          },
+        },
+      },
+      { new: true },
+    );
+
+    res.status(200).json({
+      success: true,
+      user,
     });
   } catch (error) {
     console.log(error);

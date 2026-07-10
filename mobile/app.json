@@ -1,25 +1,34 @@
 {
   "expo": {
-    "name": "sub",
-    "slug": "sub",
+    "name": "connectify",
+    "slug": "connectify",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/logo/iosAppIconPng.png",
     "scheme": "sub",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
+      "icon": "./assets/logo/iosAppIconPng.png",
       "supportsTablet": true
     },
     "android": {
+      "icon": "./assets/logo/androidAppIcon.png",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#100a30",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "package": "com.connectify.connectify"
     },
     "web": {
       "output": "static",
@@ -33,10 +42,16 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#100a30",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#100a30"
           }
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow ${PRODUCT_NAME} to access your location."
         }
       ]
     ],

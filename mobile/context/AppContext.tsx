@@ -8,13 +8,19 @@ import {
 import axios, { AxiosError } from "axios";
 import { Vibration } from "react-native";
 import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// 1. Define strict TypeScript interfaces for your Context state and arguments
 interface User {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
+  profilePicture?: string;
+  coverPhoto?: string;
+  slug?: string;
+  userType: string;
+  bio?: string;
+  gender: string;
 }
 
 interface AuthCredentials {
@@ -36,6 +42,7 @@ interface AppContextType {
   login: (
     credentials: Omit<AuthCredentials, "firstName" | "lastName">,
   ) => Promise<void>;
+  addLocation: (location: LocationData) => Promise<void>;
   VerifyEmail: (otp: string) => Promise<void>;
   isLoginEmailError: boolean;
   setIsLoginEmailError: (val: boolean) => void;
@@ -53,12 +60,26 @@ interface AppContextType {
   setIsSignUpPasswordError: (val: boolean) => void;
 }
 
+interface LocationData {
+  city: string;
+  country: string;
+  district: string;
+  isoCountryCode: string;
+  name: string;
+  postalCode: string;
+  region: string;
+  street: string;
+  streetNumber: string;
+  timezone: string;
+  longitude: number;
+  latitude: number;
+}
+
 interface ApiErrorResponse {
   type: "validation" | "email" | "password";
   message: string;
 }
 
-// 2. Initialize context with undefined (handled nicely by custom hook)
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const api = axios.create({ baseURL: "http://192.168.18.3:5000/api" });
@@ -67,7 +88,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
-  // Error States
+  // Error & Loading States
   const [isLoginEmailError, setIsLoginEmailError] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isLoginPasswordError, setIsLoginPasswordError] = useState(false);
@@ -77,14 +98,40 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isSignUpPasswordError, setIsSignUpPasswordError] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
   const [signUpLoading, setSignUpLoading] = useState(false);
-  // 3. Reset helper to clear visual errors on new form submissions
+
+  // Dynamically attach the token to all requests if it exists
+  useEffect(() => {
+    const interceptor = api.interceptors.request.use((config) => {
+      if (token) {
+        config.headers.Authorization = token;
+      }
+      return config;
+    });
+
+    return () => api.interceptors.request.eject(interceptor);
+  }, [token]);
+
   const resetErrors = () => {
     setIsLoginEmailError(false);
     setIsLoginPasswordError(false);
     setIsSignUpEmailError(false);
     setIsSignUpPasswordError(false);
   };
-
+  const addLocation = async (location: LocationData) => {
+    try {
+      const { data } = await api.post("/auth/location", location);
+      setUser(data.user);
+      console.log(data);
+      // Optional: Do something with your data response here if needed
+    } catch (error) {
+      const err = error as Error;
+      if (error.response?.data) {
+        console.log(error?.response?.data.message);
+      } else {
+        console.log("Network/General Error:", err.message);
+      }
+    }
+  };
   // Sign Up Action
   const signUp = async ({
     firstName,
@@ -93,7 +140,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     password,
   }: Required<AuthCredentials>) => {
     setSignUpLoading(true);
-    resetErrors(); // Clear old UI flags
+    resetErrors();
     try {
       const { data } = await api.post("/auth/signup", {
         firstName,
@@ -102,12 +149,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         password,
       });
       setToken(data.token);
+      await AsyncStorage.setItem("token", data.token);
       router.push("/(main)/auth/verify-email");
     } catch (error) {
       Vibration.vibrate(500);
       const err = error as AxiosError<ApiErrorResponse>;
 
-      if (err.response && err.response.data) {
+      if (err.response?.data) {
         const errorData = err.response.data;
         if (errorData.type === "validation") {
           setIsSignUpEmailError(true);
@@ -129,23 +177,23 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     email,
     password,
   }: Omit<AuthCredentials, "firstName" | "lastName">) => {
-    resetErrors(); // Clear old UI flags
+    resetErrors();
     setLoginLoading(true);
     try {
       const { data } = await api.post("/auth/login", { email, password });
-
-      // FIX: Commit actual server response to state so user gets logged in!
       setToken(data.token);
+      await AsyncStorage.setItem("token", data.token);
+
       if (data.otpRequired) {
         router.push("/(main)/auth/verify-email");
       } else {
-        router.push("/(main)/(tabs)/home");
+        router.push("/(main)/(tabs)/(home)/home");
       }
     } catch (error) {
       Vibration.vibrate(500);
       const err = error as AxiosError<ApiErrorResponse>;
 
-      if (err.response && err.response.data) {
+      if (err.response?.data) {
         const errorData = err.response.data;
         if (errorData.type === "validation") {
           setIsLoginEmailError(true);
@@ -165,47 +213,40 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setLoginLoading(false);
     }
   };
+
+  // Resend email verification Otp
   const resendEmailVerificationOtp = async () => {
     try {
-      const config = {
-        headers: {
-          Authorization: `${token}`,
-        },
-      };
-      const { data } = await api.post("/auth/sendEmailOtp", null, config);
+      const { data } = await api.post("/auth/sendEmailOtp", null);
       if (data.success) {
         console.log(data.message);
       }
     } catch (error) {
       Vibration.vibrate(500);
       const err = error as AxiosError<ApiErrorResponse>;
-      if (err.response && err.response.data) {
+      if (err.response?.data) {
         console.log(
-          "An error occured while sending",
+          "An error occurred while sending",
           err.response.data.message,
         );
       }
     }
   };
+
   // Verify Email Action
   const VerifyEmail = async (otp: string) => {
     setEmailVerificationLoading(true);
     try {
-      const config = {
-        headers: {
-          Authorization: `${token}`,
-        },
-      };
-      const { data } = await api.post("/auth/verifyEmail", { otp }, config);
+      const { data } = await api.post("/auth/verifyEmail", { otp });
       if (data.success) {
         setShowSuccess(true);
       }
     } catch (error) {
       Vibration.vibrate(500);
       const err = error as AxiosError<ApiErrorResponse>;
-      if (err.response && err.response.data) {
+      if (err.response?.data) {
         console.log(
-          "An error occured while verifying email",
+          "An error occurred while verifying email",
           err.response.data.message,
         );
       }
@@ -213,9 +254,46 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setEmailVerificationLoading(false);
     }
   };
+
+  // Get User Profile
+  const getUserProfile = async () => {
+    try {
+      const { data } = await api.get("/auth");
+      setUser(data.user);
+    } catch (error) {
+      console.log("Error fetching user profile:", error);
+    }
+  };
+
+  // Load Authentication Token from Local Storage
+  const loadStoredToken = async () => {
+    try {
+      const storedToken = await AsyncStorage.getItem("token");
+      if (storedToken) {
+        setToken(storedToken);
+        // Removed getUserProfile() from here to prevent stale state execution.
+        // The tracking useEffect hook below will handle it smoothly.
+      }
+    } catch (error) {
+      console.log("Error loading token from storage:", error);
+    }
+  };
+
+  // Lifecycle initialization
+  useEffect(() => {
+    loadStoredToken();
+  }, []);
+
+  useEffect(() => {
+    if (token) {
+      getUserProfile();
+    }
+  }, [token]);
+
   return (
     <AppContext.Provider
       value={{
+        addLocation,
         user,
         signUpLoading,
         setSignUpLoading,
@@ -247,7 +325,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// 4. Safe Consumer Hook
 export const useAppContext = () => {
   const context = useContext(AppContext);
   if (!context) {

@@ -4,7 +4,7 @@ let userSchema = new mongoose.Schema(
     // Authentication
     email: { type: String, required: true, unique: true },
     password: { type: String },
-    slug:{type: String},
+    slug: { type: String },
     phone: { type: String },
     emailVerified: { type: Boolean, default: false },
     phoneVerified: { type: Boolean, default: false },
@@ -15,6 +15,11 @@ let userSchema = new mongoose.Schema(
       type: String,
       default:
         "https://media.istockphoto.com/id/2151669184/vector/vector-flat-illustration-in-grayscale-avatar-user-profile-person-icon-gender-neutral.jpg?s=612x612&w=0&k=20&c=UEa7oHoOL30ynvmJzSCIPrwwopJdfqzBs0q69ezQoM8=",
+    },
+    coverPhoto: {
+      type: String,
+      default:
+        "https://images.unsplash.com/photo-1575318080244-dd217d9db1e2?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     bio: { type: String, default: "", maxlength: 500 },
     dateOfBirth: { type: Date },
@@ -32,10 +37,16 @@ let userSchema = new mongoose.Schema(
     },
     // Location
     location: {
-      address: { type: String },
       city: { type: String },
-      state: { type: String },
       country: { type: String },
+      district: { type: String },
+      isoCountryCode: { type: String },
+      name: { type: String },
+      postalCode: { type: String },
+      region: { type: String },
+      street: { type: String },
+      streetNumber: { type: String },
+      timezone: { type: String },
       coordinates: {
         type: { type: String, enum: ["point"], default: "point" },
         coordinates: { type: [Number], default: [0, 0] }, // [longitude, latitude]
@@ -44,7 +55,7 @@ let userSchema = new mongoose.Schema(
     // Social
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    savedEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
+    savedEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: "Events" }],
     // Settings
     preferences: {
       language: { type: String, default: "en" },

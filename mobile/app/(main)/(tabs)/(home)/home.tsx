@@ -16,6 +16,7 @@ const Home = () => {
       {/* Filters & Search  */}
       {isFilter ? <Filter switchSearch={switchSearch}  /> : <Search switchSearch={switchSearch}/>}
       <ScrollView
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           flex: 1,
           justifyContent: "center",

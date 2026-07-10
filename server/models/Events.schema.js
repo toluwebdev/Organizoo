@@ -58,7 +58,10 @@ let eventSchema = new mongoose.Schema(
     ],
     ticketTiers: [
       {
-        _id: new mongoose.Schema.Types.ObjectId(),
+        _id: {
+          type: mongoose.Schema.Types.ObjectId,
+          default: () => new mongoose.Types.ObjectId(),
+        },
         name: String,
         price: Number,
         quantity: Number,
