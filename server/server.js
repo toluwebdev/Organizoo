@@ -10,6 +10,7 @@ app.use(express.json());
 app.use(cors());
 // Routes
 app.use("/api/auth", authRoutes);
+app.get("/", (req, res) => res.send("Api working "));
 
 connectDB().then(() => {
   app.listen(process.env.PORT, "0.0.0.0", () => {
