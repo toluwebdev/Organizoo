@@ -5,26 +5,27 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logo/iosAppIconPng.png",
-    "scheme": "sub",
+    "scheme": "connectify",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "icon": "./assets/logo/iosAppIconPng.png",
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.connectify.connectify",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "softwareKeyboardLayoutMode": "resize",
       "icon": "./assets/logo/androidAppIcon.png",
       "adaptiveIcon": {
         "backgroundColor": "#100a30",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/logo/androidAppIcon.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
       ],
@@ -32,14 +33,14 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/logo/androidAppIcon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/logo/androidAppIcon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#100a30",
@@ -58,6 +59,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1371d41e-05a4-4f57-b8f6-9e124f527bb5"
+      }
     }
   }
 }

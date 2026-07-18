@@ -10,7 +10,7 @@ import { Vibration } from "react-native";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-interface User {
+export interface User {
   id: string;
   email: string;
   firstName: string;
@@ -32,6 +32,7 @@ interface AuthCredentials {
 
 interface AppContextType {
   user: User | null;
+  authLoading: boolean; // Added to track initial token restoration
   emailVerificationLoading: boolean;
   setEmailVerificationLoading: (val: boolean) => void;
   setUser: (user: User | null) => void;
@@ -58,6 +59,7 @@ interface AppContextType {
   setIsSignUpEmailError: (val: boolean) => void;
   isSignUpPasswordError: boolean;
   setIsSignUpPasswordError: (val: boolean) => void;
+  logout: () => Promise<void>; // Added helper
 }
 
 interface LocationData {
@@ -82,11 +84,15 @@ interface ApiErrorResponse {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const api = axios.create({ baseURL: "http://192.168.18.3:5000/api" });
+const api = axios.create({ baseURL: "http://192.168.18.2:5000/api" });
+
+// Constant storage key to prevent mismatches
+const TOKEN_KEY = "@token";
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [authLoading, setAuthLoading] = useState(true); // Tracks startup state
 
   // Error & Loading States
   const [isLoginEmailError, setIsLoginEmailError] = useState(false);
@@ -117,21 +123,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setIsSignUpEmailError(false);
     setIsSignUpPasswordError(false);
   };
+
   const addLocation = async (location: LocationData) => {
     try {
       const { data } = await api.post("/auth/location", location);
       setUser(data.user);
-      console.log(data);
-      // Optional: Do something with your data response here if needed
     } catch (error) {
       const err = error as Error;
-      if (error.response?.data) {
-        console.log(error?.response?.data.message);
-      } else {
-        console.log("Network/General Error:", err.message);
-      }
+      console.log("Location Save Error:", err.message);
     }
   };
+
   // Sign Up Action
   const signUp = async ({
     firstName,
@@ -149,7 +151,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         password,
       });
       setToken(data.token);
-      await AsyncStorage.setItem("token", data.token);
+      await AsyncStorage.setItem(TOKEN_KEY, data.token); // No JSON stringify for flat strings!
       router.push("/(main)/auth/verify-email");
     } catch (error) {
       Vibration.vibrate(500);
@@ -182,7 +184,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data } = await api.post("/auth/login", { email, password });
       setToken(data.token);
-      await AsyncStorage.setItem("token", data.token);
+      await AsyncStorage.setItem(TOKEN_KEY, data.token); // Standardized storage helper
 
       if (data.otpRequired) {
         router.push("/(main)/auth/verify-email");
@@ -205,7 +207,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         if (errorData.type === "password") {
           setIsLoginPasswordError(true);
         }
-        console.log("Server Message:", errorData.message);
       } else {
         console.log("Network/General Error:", err.message);
       }
@@ -246,7 +247,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const err = error as AxiosError<ApiErrorResponse>;
       if (err.response?.data) {
         console.log(
-          "An error occurred while verifying email",
+          "An error occurred while verifying",
           err.response.data.message,
         );
       }
@@ -254,28 +255,49 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setEmailVerificationLoading(false);
     }
   };
-
+  
   // Get User Profile
-  const getUserProfile = async () => {
+  const getUserProfile = async (currentToken: string) => {
     try {
-      const { data } = await api.get("/auth");
+      const { data } = await api.get("/auth", {
+        headers: { Authorization: currentToken },
+      });
       setUser(data.user);
     } catch (error) {
-      console.log("Error fetching user profile:", error);
+      console.log(
+        "Error fetching user profile (session expired). Clearing credentials.",
+      );
+      await logout(); // Session expired or invalid token, clean up state
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  // Logout Helper
+  const logout = async () => {
+    try {
+      await AsyncStorage.removeItem(TOKEN_KEY);
+      setToken(null);
+      setUser(null);
+      router.replace("/")
+    } catch (error) {
+      console.log("Logout cleanup error:", error);
     }
   };
 
   // Load Authentication Token from Local Storage
   const loadStoredToken = async () => {
     try {
-      const storedToken = await AsyncStorage.getItem("token");
+      const storedToken = await AsyncStorage.getItem(TOKEN_KEY);
       if (storedToken) {
-        setToken(storedToken);
-        // Removed getUserProfile() from here to prevent stale state execution.
-        // The tracking useEffect hook below will handle it smoothly.
+        setToken(storedToken); // Stored directly as a pure string
+        await getUserProfile(storedToken);
+      } else {
+        setAuthLoading(false); // No token found, loading finished
       }
     } catch (error) {
       console.log("Error loading token from storage:", error);
+      setAuthLoading(false);
     }
   };
 
@@ -284,17 +306,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     loadStoredToken();
   }, []);
 
-  useEffect(() => {
-    if (token) {
-      getUserProfile();
-    }
-  }, [token]);
-
   return (
     <AppContext.Provider
       value={{
         addLocation,
         user,
+        authLoading,
         signUpLoading,
         setSignUpLoading,
         loginLoading,
@@ -318,6 +335,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setIsSignUpEmailError,
         isSignUpPasswordError,
         setIsSignUpPasswordError,
+        logout,
       }}
     >
       {children}

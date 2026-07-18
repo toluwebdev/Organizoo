@@ -36,7 +36,7 @@ const Welcome = () => {
           <View key={index}>{t}</View>
         ))}
       </Swiper>
-      <View className=" w-full pb-10 gap-3 px-5 bg-white ">
+      <View className=" w-full gap-3 px-5 bg-white ">
         <GlobalButton
           text={isLastSlide ? "Get Started" : "Continue"}
           onPress={() => {
@@ -45,7 +45,7 @@ const Welcome = () => {
               : swipeRef.current?.scrollBy(1);
           }}
         />
-        <View className="text-center flex gap-0.5 font-light flex-row justify-center  items-center">
+        <View className="text-center flex gap-0.5 pb-10 pt-5 font-light flex-row justify-center  items-center">
           <Text className="font-light">Don't have an account ?</Text>
           <TouchableOpacity
             onPress={() => router.push("/(main)/auth/signup")}

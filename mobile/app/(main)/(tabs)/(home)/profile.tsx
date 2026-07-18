@@ -1,10 +1,11 @@
 import { View, Text, ScrollView, Image } from "react-native";
 import React from "react";
 import { useAppContext } from "@/context/AppContext";
-import {  Octicons } from "@expo/vector-icons";
+import { Octicons } from "@expo/vector-icons";
+import GlobalButton from "@/components/global/GlobalButton";
 
 const Profile = () => {
-  const { user } = useAppContext();
+  const { user, logout } = useAppContext();
   return (
     <View className="flex-1 ">
       <ScrollView
@@ -42,7 +43,14 @@ const Profile = () => {
         </View>
         <View className="mx-3">
           <Text className="text-2xl  font-medium   mt-20">
-            {user?.firstName} {user?.lastName}
+            {user?.firstName
+              .split(" ")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")}{" "}
+            {user?.lastName
+              .split(" ")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")}
           </Text>
           <Text className="text-gray-500 text-sm ">
             {user?.slug || "No Slug Available"} •{" "}
@@ -59,6 +67,7 @@ const Profile = () => {
           <Text className="text-black text-md font-normal mt-2">
             {user?.bio || "No bio available"}
           </Text>
+          <GlobalButton text="Logout" lessBorder onPress={logout} />
         </View>
       </ScrollView>
     </View>
